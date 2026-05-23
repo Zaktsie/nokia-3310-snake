@@ -4,15 +4,11 @@ import GameCanvas from './GameCanvas.vue';
 import { soundManager } from '../utils/SoundManager';
 
 const props = defineProps({
-  isBacklit: {
-    type: Boolean,
-    default: true
-  }
+  isBacklit: { type: Boolean, default: true }
 });
 
 const emit = defineEmits(['toggle-backlight', 'vibrate']);
 
-// Game state constants
 const STATES = {
   MAIN_MENU: 'main_menu',
   GAMEPLAY: 'gameplay',
@@ -27,18 +23,11 @@ const activeState = ref(STATES.MAIN_MENU);
 const menuSelectedIndex = ref(0);
 const gameScore = ref(0);
 const isPaused = ref(false);
-
-// Settings
 const speedLevel = ref(5);
 const hasSolidWalls = ref(true);
-
-// Game reference
 const gameCanvasRef = ref(null);
-
-// High Scores State
 const highScores = ref([]);
 
-// Menu Definitions
 const mainMenuOptions = [
   { name: '1. Play', action: () => startGame() },
   { name: '2. Settings', action: () => openSettings() },
@@ -65,9 +54,7 @@ const gameOverOptions = [
   { name: '2. Main Menu', action: () => goToMainMenu() }
 ];
 
-// Initialize and Load Settings
 onMounted(() => {
-  // Load High Scores
   const savedScores = localStorage.getItem('nokia_snake_high_scores');
   if (savedScores) {
     highScores.value = JSON.parse(savedScores);
@@ -76,7 +63,6 @@ onMounted(() => {
     localStorage.setItem('nokia_snake_high_scores', JSON.stringify(highScores.value));
   }
 
-  // Load Settings
   const savedSpeed = localStorage.getItem('nokia_snake_speed');
   if (savedSpeed) speedLevel.value = parseInt(savedSpeed, 10);
 
@@ -84,16 +70,9 @@ onMounted(() => {
   if (savedWalls) hasSolidWalls.value = savedWalls === 'true';
 });
 
-// Sound toggles & Actions
-const playNokiaTune = () => {
-  soundManager.playNokiaTune();
-};
+const playNokiaTune = () => soundManager.playNokiaTune();
+const playBeep = () => soundManager.playBeep();
 
-const playBeep = () => {
-  soundManager.playBeep();
-};
-
-// Menu Actions
 const startGame = () => {
   playBeep();
   activeState.value = STATES.GAMEPLAY;
@@ -136,9 +115,7 @@ const restartGame = () => {
   isPaused.value = false;
   gameScore.value = 0;
   setTimeout(() => {
-    if (gameCanvasRef.value) {
-      gameCanvasRef.value.initGame();
-    }
+    if (gameCanvasRef.value) gameCanvasRef.value.initGame();
   }, 10);
 };
 
@@ -149,54 +126,45 @@ const exitGame = () => {
   menuSelectedIndex.value = 0;
 };
 
-// Handle Settings Interaction
 const changeSetting = (dir) => {
   const currentOption = menuSelectedIndex.value;
-  if (currentOption === 0) { // Speed level 1-9
+  if (currentOption === 0) {
     let newSpeed = speedLevel.value + (dir === 'RIGHT' || dir === 'UP' ? 1 : -1);
     if (newSpeed < 1) newSpeed = 9;
     if (newSpeed > 9) newSpeed = 1;
     speedLevel.value = newSpeed;
     localStorage.setItem('nokia_snake_speed', newSpeed);
     soundManager.playBeep();
-  } else if (currentOption === 1) { // Walls toggle
+  } else if (currentOption === 1) {
     hasSolidWalls.value = !hasSolidWalls.value;
     localStorage.setItem('nokia_snake_walls', hasSolidWalls.value);
     soundManager.playBeep();
-  } else if (currentOption === 2) { // Backlight toggle
+  } else if (currentOption === 2) {
     emit('toggle-backlight');
     soundManager.playBeep();
   }
 };
 
-// Handle Game Over
 const checkHighScore = (score) => {
   gameScore.value = score;
   const isNewHigh = score > 0 && (highScores.value.length < 5 || score > highScores.value[highScores.value.length - 1]);
-  
+
   if (isNewHigh) {
     highScores.value.push(score);
     highScores.value.sort((a, b) => b - a);
-    if (highScores.value.length > 5) {
-      highScores.value.pop();
-    }
+    if (highScores.value.length > 5) highScores.value.pop();
     localStorage.setItem('nokia_snake_high_scores', JSON.stringify(highScores.value));
   }
-  
+
   activeState.value = STATES.GAME_OVER;
   menuSelectedIndex.value = 0;
 };
 
-// Core Button/Key Receiver method (invoked by PhoneWrapper/App)
 const handleAction = (action) => {
-  // Gameplay routing (direct controls to Snake)
   if (activeState.value === STATES.GAMEPLAY) {
     if (['UP', 'DOWN', 'LEFT', 'RIGHT'].includes(action)) {
-      if (gameCanvasRef.value) {
-        gameCanvasRef.value.handleDirectionChange(action);
-      }
+      if (gameCanvasRef.value) gameCanvasRef.value.handleDirectionChange(action);
     } else if (action === 'BACK' || action === 'CLEAR') {
-      // Pause Game
       playBeep();
       isPaused.value = true;
       activeState.value = STATES.PAUSE_MENU;
@@ -205,7 +173,6 @@ const handleAction = (action) => {
     return;
   }
 
-  // General Screen Actions (Menu navigations)
   switch (activeState.value) {
     case STATES.MAIN_MENU:
       if (action === 'UP') {
@@ -243,7 +210,7 @@ const handleAction = (action) => {
       } else if (action === 'LEFT' || action === 'RIGHT') {
         changeSetting(action);
       } else if (action === 'SELECT') {
-        if (menuSelectedIndex.value === 3) { // Back to Menu
+        if (menuSelectedIndex.value === 3) {
           goToMainMenu();
         } else {
           changeSetting('RIGHT');
@@ -276,26 +243,17 @@ const handleAction = (action) => {
   }
 };
 
-defineExpose({
-  handleAction
-});
+defineExpose({ handleAction });
 
-// Computed values for Scrollbars
 const scrollThumbStyle = computed(() => {
   if (activeState.value === STATES.MAIN_MENU) {
     const height = 100 / mainMenuOptions.length;
     const top = menuSelectedIndex.value * height;
-    return {
-      height: `${height}%`,
-      top: `${top}%`
-    };
+    return { height: `${height}%`, top: `${top}%` };
   } else if (activeState.value === STATES.SETTINGS) {
     const height = 100 / settingsOptions.value.length;
     const top = menuSelectedIndex.value * height;
-    return {
-      height: `${height}%`,
-      top: `${top}%`
-    };
+    return { height: `${height}%`, top: `${top}%` };
   }
   return { height: '100%', top: '0%' };
 });
@@ -303,11 +261,9 @@ const scrollThumbStyle = computed(() => {
 
 <template>
   <div class="nokia-screen-inner" :class="{ backlit: isBacklit }" id="screen-inner-display">
-    <!-- LCD scanlines & gloss layer -->
     <div class="screen-mesh"></div>
     <div class="screen-glare"></div>
 
-    <!-- LCD Header Status Bars (Battery/Signal) -->
     <div class="lcd-status-bar" v-if="activeState !== STATES.GAMEPLAY">
       <div class="signal-indicator" title="Network Signal strength">
         <div class="sig-bar"></div>
@@ -324,13 +280,12 @@ const scrollThumbStyle = computed(() => {
       </div>
     </div>
 
-    <!-- MAIN MENU -->
     <div v-if="activeState === STATES.MAIN_MENU" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
       <div class="screen-menu-title">Snake II</div>
       <div class="menu-items-list">
-        <div 
-          v-for="(opt, idx) in mainMenuOptions" 
-          :key="idx" 
+        <div
+          v-for="(opt, idx) in mainMenuOptions"
+          :key="idx"
           class="menu-item"
           :class="{ active: idx === menuSelectedIndex }"
         >
@@ -343,14 +298,13 @@ const scrollThumbStyle = computed(() => {
       </div>
     </div>
 
-    <!-- GAMEPLAY SCREEN -->
     <div v-else-if="activeState === STATES.GAMEPLAY" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
       <div class="screen-game-header">
         <span>L{{ speedLevel }}</span>
         <span>Score: {{ gameScore }}</span>
       </div>
-      <GameCanvas 
-        ref="gameCanvasRef" 
+      <GameCanvas
+        ref="gameCanvasRef"
         :speedLevel="speedLevel"
         :hasSolidWalls="hasSolidWalls"
         :isPaused="isPaused"
@@ -360,13 +314,12 @@ const scrollThumbStyle = computed(() => {
       />
     </div>
 
-    <!-- PAUSE MENU -->
     <div v-else-if="activeState === STATES.PAUSE_MENU" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
       <div class="screen-menu-title">Paused</div>
       <div class="menu-items-list" style="margin-top: 10px;">
-        <div 
-          v-for="(opt, idx) in pauseMenuOptions" 
-          :key="idx" 
+        <div
+          v-for="(opt, idx) in pauseMenuOptions"
+          :key="idx"
           class="menu-item"
           :class="{ active: idx === menuSelectedIndex }"
         >
@@ -376,13 +329,12 @@ const scrollThumbStyle = computed(() => {
       </div>
     </div>
 
-    <!-- SETTINGS -->
     <div v-else-if="activeState === STATES.SETTINGS" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
       <div class="screen-menu-title">Settings</div>
       <div class="menu-items-list">
-        <div 
-          v-for="(opt, idx) in settingsOptions" 
-          :key="idx" 
+        <div
+          v-for="(opt, idx) in settingsOptions"
+          :key="idx"
           class="menu-item"
           :class="{ active: idx === menuSelectedIndex }"
         >
@@ -397,13 +349,12 @@ const scrollThumbStyle = computed(() => {
       </div>
     </div>
 
-    <!-- HIGH SCORES -->
     <div v-else-if="activeState === STATES.HIGH_SCORES" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
       <div class="screen-menu-title">High Scores</div>
       <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; margin-top: 2px;">
-        <div 
-          v-for="(score, idx) in highScores" 
-          :key="idx" 
+        <div
+          v-for="(score, idx) in highScores"
+          :key="idx"
           class="score-row"
           :class="{ active: idx === 0 }"
         >
@@ -416,14 +367,13 @@ const scrollThumbStyle = computed(() => {
       </div>
     </div>
 
-    <!-- HELP / INSTRUCTIONS -->
     <div v-else-if="activeState === STATES.HELP" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
       <div class="screen-menu-title">Controls</div>
       <div class="help-container" style="flex-grow: 1; padding: 2px 4px; overflow: hidden;">
         Use keys:
         2 - UP    | 4 - LEFT
         6 - RIGHT | 8 - DOWN
-        
+
         Or use arrow keys.
         Press BACK (C) to pause.
       </div>
@@ -432,16 +382,14 @@ const scrollThumbStyle = computed(() => {
       </div>
     </div>
 
-    <!-- GAME OVER -->
     <div v-else-if="activeState === STATES.GAME_OVER" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
       <div class="screen-menu-title">Game Over</div>
       <div style="flex-grow: 1; text-align: center; padding-top: 5px;">
         <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 2px;">Score: {{ gameScore }}</div>
-        
         <div class="menu-items-list" style="margin-top: 6px;">
-          <div 
-            v-for="(opt, idx) in gameOverOptions" 
-            :key="idx" 
+          <div
+            v-for="(opt, idx) in gameOverOptions"
+            :key="idx"
             class="menu-item"
             :class="{ active: idx === menuSelectedIndex }"
           >

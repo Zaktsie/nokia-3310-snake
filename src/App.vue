@@ -18,7 +18,6 @@ const toggleGlobalMute = () => {
   </header>
 
   <main class="game-container" id="app-main-layout">
-    <!-- Left panel: Info & Retro Nostalgia -->
     <section class="side-panel" aria-labelledby="retro-info-title">
       <h2 id="retro-info-title">Nostalgia Specs</h2>
       <p>
@@ -27,12 +26,12 @@ const toggleGlobalMute = () => {
       <p>
         <strong>Snake II</strong> introduced mazes, wrap-around walls, insect bonuses, and multiplayer mode, making it an instant global phenomenon.
       </p>
-      
+
       <div style="margin-top: 24px;">
-        <h2 id="settings-info-title">Audio & Backlight</h2>
+        <h2 id="settings-info-title">Audio &amp; Backlight</h2>
         <p>This clone synthesizes authentic monophonic ringtones and sound effects using the modern browser Web Audio API.</p>
-        <button 
-          @click="toggleGlobalMute" 
+        <button
+          @click="toggleGlobalMute"
           class="mute-button"
           :aria-label="isMuted ? 'Unmute Sound' : 'Mute Sound'"
           id="btn-global-mute"
@@ -42,12 +41,10 @@ const toggleGlobalMute = () => {
       </div>
     </section>
 
-    <!-- Center: Physical Nokia 3310 Phone -->
     <section aria-label="Nokia 3310 Gameplay Screen">
       <PhoneWrapper />
     </section>
 
-    <!-- Right panel: Keyboard Instructions -->
     <section class="side-panel" aria-labelledby="controls-info-title">
       <h2 id="controls-info-title">Keyboard Bindings</h2>
       <p>Play using either the screen clicks or map directly from your computer keyboard:</p>
@@ -81,7 +78,7 @@ const toggleGlobalMute = () => {
           <span class="kbd-shortcut">M Mute / Unmute</span>
         </div>
       </div>
-      
+
       <div style="margin-top: 24px; font-size: 0.8rem; color: #9ca3af; text-align: center;">
         <p>💡 Tip: Use settings to toggle walls or increase speed from levels 1 to 9!</p>
       </div>
@@ -89,12 +86,11 @@ const toggleGlobalMute = () => {
   </main>
 
   <footer class="footer-info">
-    <p>Zak Tsienyane  &copy; 2026. Built with Vue 3 & Vite.</p>
+    <p>Zak Tsienyane &copy; 2026. Built with Vue 3 &amp; Vite.</p>
   </footer>
 </template>
 
 <style scoped>
-/* Scoped app styling if any */
 header {
   width: 100%;
 }
